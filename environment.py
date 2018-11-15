@@ -22,9 +22,9 @@ class Environment:
 		max_bot = y+r
 		##move to top left corner
 		(i,j)=(x,y)
-		while(i>max_back and i>0):
+		while(i>max_back and i>=0):
 			i=i-1
-		while(j>max_top and j>0 ):
+		while(j>max_top and j>=0 ):
 			j=j-1
 
 		##show empty env before
@@ -48,7 +48,8 @@ class Environment:
 					ret.append((i-x,j-y,self.grid[i][j])) ##perception
 				j=j+1				
 			i=i+1
-		
+		i=i-1
+		j=j-1
 		#empty env after
 		while(i<=max_for):
 			j=jst
@@ -66,11 +67,27 @@ class Environment:
 		print(self.grid[x][y],x,y)
 		self.notify_all(x,y,id)
 	
-	def move_vect(self,x,y,mx,my):
+	def move_vect(self,x,y,mx,my,trace=True):
 		if(x+mx>0 and y+my>0 and x+mx<self.width and y+my<self.height):
 			id=self.grid[x][y]
-			#self.grid[x][y]=0
 			self.grid[x+mx][y+my]=id
+			##draw trace of the move
+			if(trace):
+				i=x+mx
+				j=y+my
+				while(i!=x and j!=y):
+					if(i>x):
+						i=i-1
+					else:
+						if(i<x):
+							i=i+1
+					if(j>y):
+						j=j-1
+					else:
+						if(j<y):
+							j=j+1
+					self.grid[i][j]=id
+					self.notify_all(i,j,id)
 			self.notify_all(x+mx,y+my,id)
 			return True
 		else:
