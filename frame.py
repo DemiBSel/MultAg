@@ -2,7 +2,7 @@ from tkinter import *
 from threading import Thread, BoundedSemaphore
 import random
 
-DOT_SCALE = 1
+DOT_SCALE = 10
 ##Semaphores
 paint_sema = BoundedSemaphore(value=1)
 queue_sema = BoundedSemaphore(value=1)
@@ -34,17 +34,18 @@ class ThDisplayer(Thread):
 				posY=(self.fr.height*ofY)
 				if(t[2] not in self.colors):
 					self.setColor(t[2])
-					txt = self.fr.canvas.create_text(posX,posY,text=t[2],fill=self.colors[t[2]])
+					# txt = self.fr.canvas.create_text(posX,posY,text=t[2],fill=self.colors[t[2]])
+					txt = self.fr.canvas.create_text(posX,posY,text=t[2])
 					if(t[2] not in self.heads):
-						self.heads[t[2]]={'ref' : txt, 'x' : t[0], 'y' : t[1]}
+						self.heads[t[2]]={'ref' : txt, 'x' : posX, 'y' : posY}
 				if(t[2] in self.colors and t[2] in self.heads):
 					self.fr.canvas.create_rectangle(posX-DOT_SCALE/2,posY-DOT_SCALE/2,posX+DOT_SCALE/2,posY+DOT_SCALE/2,fill=self.colors[t[2]],outline=self.colors[t[2]])
 					head = self.heads[t[2]]
 					(x,y) = (head['x'],head['y'])
-					self.fr.canvas.move(head['ref'],t[0]-x,t[1]-y)
+					self.fr.canvas.move(head['ref'],posX-x,posY-y)
 					self.fr.canvas.tag_raise(head['ref'])
-					head['x']=t[0]
-					head['y']=t[1]
+					head['x']=posX
+					head['y']=posY
 	
 	def run(self):
 		global DOT_SCALE
@@ -68,14 +69,14 @@ class Frame(Thread):
 		queue_sema.acquire()
 		self.queue.append((x,y,""+c))
 		queue_sema.release()
-		if(len(self.queue)>10):
+		if(len(self.queue)>0):
 			self.paint_queue()
 		
 		
 
 	def paint_queue(self):
 		paint_sema.acquire()
-		if(not self.isAlive() and len(self.queue)>10):
+		if(not self.isAlive() and len(self.queue)>0):
 			self.start()
 			#self.join()
 		paint_sema.release()

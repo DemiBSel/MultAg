@@ -20,43 +20,23 @@ class Environment:
 		max_for = x+r
 		max_top = y-r
 		max_bot = y+r
-		##move to top left corner
-		(i,j)=(x,y)
-		while(i>max_back and i>=0):
-			i=i-1
-		while(j>max_top and j>=0 ):
-			j=j-1
-
-		##show empty env before
-		ic = i
-		jc = j
-		while(ic>max_back):
-			jc=j
-			while(jc>max_top):
-				ret.append((ic-x,jc-y,0)) ##perception
-				jc=jc-1
-			ic=ic-1
 		
 		
-		jst=j
-		
-		##and move to bottom right corner
-		while(i<=max_for and i<self.width):
-			j=jst
-			while(j<=max_bot and j<self.height):
-				if (self.grid[i][j] != 0 ):
-					ret.append((i-x,j-y,self.grid[i][j])) ##perception
-				j=j+1				
-			i=i+1
-		i=i-1
-		j=j-1
-		#empty env after
-		while(i<=max_for):
-			j=jst
-			while(j<=max_bot):
-				ret.append((i-x,y-j,0)) ##perception
-				j=j+1				
-			i=i+1
+		it=max_back
+		jt=max_top
+		while(it<=max_for):
+			jt=max_top
+			while(jt<=max_bot):
+				if(it<=0 or it>=self.width or jt<=0 or jt>=self.height):
+					#detect boundaries
+					ret.append((it-x,jt-y,0)) ##perception
+				else:
+					#detect obstacles
+					if (self.grid[it][jt] != 0 ):
+						ret.append((it-x,jt-y,self.grid[it][jt])) ##perception
+				jt=jt+1
+			it=it+1
+	
 		return ret
 		
 	def get_pos(self,x,y):
@@ -64,12 +44,10 @@ class Environment:
 	
 	def place(self,id,x,y):
 		self.grid[x][y]=id
-		print(self.grid[x][y],x,y)
 		self.notify_all(x,y,id)
 	
-	def move_vect(self,x,y,mx,my,trace=True):
+	def move_vect(self,x,y,mx,my,id,trace=True):
 		if(x+mx>0 and y+my>0 and x+mx<self.width and y+my<self.height):
-			id=self.grid[x][y]
 			self.grid[x+mx][y+my]=id
 			##draw trace of the move
 			if(trace):
@@ -87,8 +65,9 @@ class Environment:
 						if(j<y):
 							j=j+1
 					self.grid[i][j]=id
-					self.notify_all(i,j,id)
+					
 			self.notify_all(x+mx,y+my,id)
 			return True
 		else:
+			print("refused "+str((x,y))+" + "+str((mx,my))+" for "+self.grid[x][y],flush=True)
 			return False
